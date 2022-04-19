@@ -77,7 +77,7 @@ export const bcryptPassword = {
 };
 
 export class UserCreateDto {
-  @ApiProperty({ default: 'test_admin@mailinator.com' })
+  @ApiProperty({ default: 'testAd@mailinator.com' })
   @IsString()
   @Column()
   @IsNotEmpty()

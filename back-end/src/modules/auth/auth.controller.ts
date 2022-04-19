@@ -13,7 +13,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { UserLoginDto, UserResetPasswordDto } from './entity/auth.entity';
+import {
+  AuthForgotPasswordDto,
+  AuthLoginDto,
+  AuthResetPasswordDto,
+} from './entity/auth.entity';
 import JwtAccessAuthGuard from './guards/jwt-access-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
@@ -24,9 +28,9 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('/login')
-  async login(@Body() inputLogin: UserLoginDto, @Res() res: Response) {
+  async login(@Body() input: AuthLoginDto, @Res() res: Response) {
     this.authService
-      .login(inputLogin)
+      .login(input)
       .then(requestSuccess(res))
       .catch(requestError(res));
   }
@@ -35,12 +39,24 @@ export class AuthController {
   @UseGuards(JwtAccessAuthGuard)
   @Put('/reset-password')
   async resetPassword(
-    @Body() inputLogin: UserResetPasswordDto,
+    @Body() input: AuthResetPasswordDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     this.authService
-      .resetPassword(req, inputLogin)
+      .resetPassword(req, input)
+      .then(requestSuccess(res))
+      .catch(requestError(res));
+  }
+
+  @Post('/forgot-password')
+  async forgotPassword(
+    @Body() input: AuthForgotPasswordDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    this.authService
+      .forgotPassword(input)
       .then(requestSuccess(res))
       .catch(requestError(res));
   }

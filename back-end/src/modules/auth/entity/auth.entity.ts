@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
-export class UserLoginDto {
-  @ApiProperty({ default: 'test_admin@mailinator.com' })
+export class AuthLoginDto {
+  @ApiProperty({ default: 'testAd@mailinator.com' })
   @IsString()
   @IsNotEmpty()
   email: string;
@@ -13,7 +13,7 @@ export class UserLoginDto {
   password: string;
 }
 
-export class UserLoginInput extends UserLoginDto {
+export class AuthLoginInput extends AuthLoginDto {
   constructor({ email, password }) {
     super();
     this.email = email;
@@ -21,16 +21,30 @@ export class UserLoginInput extends UserLoginDto {
   }
 }
 
-export class UserResetPasswordDto {
+export class AuthResetPasswordDto {
   @ApiProperty()
   @MinLength(8)
   @IsNotEmpty()
   password: string;
 }
 
-export class UserResetPasswordInput extends UserResetPasswordDto {
+export class AuthResetPasswordInput extends AuthResetPasswordDto {
   constructor({ password }) {
     super();
     this.password = password;
+  }
+}
+
+export class AuthForgotPasswordDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+}
+
+export class AuthForgotPasswordInput extends AuthForgotPasswordDto {
+  constructor({ email }) {
+    super();
+    this.email = email;
   }
 }
