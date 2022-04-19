@@ -1,15 +1,36 @@
-import { Body, Controller, Get, Post, Put, Res } from '@nestjs/common';
-import { Response } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Res,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Response, Request } from 'express';
 import { UserService } from './user.service';
 import { requestSuccess, requestError } from '@/util/response';
-import { ApiTags } from '@nestjs/swagger';
-import { UserCreateDto } from './entity/user.entity';
-
+import { ApiBasicAuth, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  UserChangePasswordDto,
+  UserCreateDto,
+  UserDeleteDto,
+  UserUpdateDto,
+} from './entity/user.entity';
+import { Roles } from '@/modules/auth/decorators/roles.decorator';
+import { RolesGuard } from '@/modules/auth/guards/role.guard';
+import JwtAccessAuthGuard from '@/modules/auth/guards/jwt-access-auth.guard';
+import { UserRole, UserStatus } from './enum';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAccessAuthGuard, RolesGuard)
   @Get('')
   async getUser(@Res() res: Response) {
     this.userService
@@ -19,20 +40,52 @@ export class UserController {
   }
 
   @Post('')
-  async createUser(@Body() createUserDto: UserCreateDto, @Res() res: Response) {
+  async createUser(@Body() input: UserCreateDto, @Res() res: Response) {
     this.userService
-      .createUser(createUserDto)
+      .createUser(input)
       .then(requestSuccess(res))
       .catch(requestError(res));
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAccessAuthGuard)
   @Put('/change-password')
   async changePassword(
-    @Body() createUserDto: UserCreateDto,
+    @Body() input: UserChangePasswordDto,
+    @Req() req: Request,
     @Res() res: Response,
   ) {
     this.userService
-      .createUser(createUserDto)
+      .changePassword(req, input)
+      .then(requestSuccess(res))
+      .catch(requestError(res));
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAccessAuthGuard)
+  @Put('')
+  async updateUser(
+    @Body() input: UserUpdateDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    this.userService
+      .updateUser(req, input)
+      .then(requestSuccess(res))
+      .catch(requestError(res));
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAccessAuthGuard, RolesGuard)
+  @Delete('')
+  async deleteUser(
+    @Body() input: UserDeleteDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    this.userService
+      .deleteUser(input)
       .then(requestSuccess(res))
       .catch(requestError(res));
   }

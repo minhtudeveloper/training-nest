@@ -12,9 +12,9 @@ async function bootstrap() {
     .setTitle('API Training')
     .setDescription('The API description')
     .setVersion('1.0')
-    .addCookieAuth('Authentication')
+    .addBearerAuth()
     .build();
-    
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc', app, document);
   app.useGlobalPipes(new ValidationPipe());

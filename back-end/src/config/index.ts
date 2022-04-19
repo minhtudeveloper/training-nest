@@ -1,3 +1,3 @@
-import { configMongo } from './config.mongo';
+import { Environment as ENV } from './environment';
 
-export  { configMongo };
+export { ENV };
