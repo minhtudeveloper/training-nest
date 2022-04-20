@@ -5,6 +5,7 @@ import { bcryptPassword, User } from '@/modules/user/entity/user.entity';
 import {
   AuthForgotPasswordDto,
   AuthForgotPasswordInput,
+  AuthGoogleLoginDto,
   AuthLoginDto,
   AuthResetPasswordDto,
   AuthResetPasswordInput,
@@ -14,6 +15,7 @@ import { Response, Request } from 'express';
 import { validate } from 'class-validator';
 import { getLogValidateFaile } from '@/util/validate';
 import { MailService } from '../mail/mail.service';
+import { UserRole, UserStatus } from '../user/enum';
 
 Injectable();
 export class AuthService {
@@ -83,7 +85,6 @@ export class AuthService {
     return new Promise(async (rs, rj) => {
       try {
         // mailservice
-        console.log({ input });
         const { email } = input;
         const data = { email };
         const errors = await validate(new AuthForgotPasswordInput(data));
@@ -95,6 +96,9 @@ export class AuthService {
             email: data.email,
           },
         });
+        if(!user){
+          rj('Email does not exist')
+        }
         const tokenToClient = await this.jwtService.sign({
           id: user.id.toString(),
           email: user.email,
@@ -103,9 +107,11 @@ export class AuthService {
           status: user.status,
         });
 
-        this.mailservice.sendUserConfirmation(user, tokenToClient).then(() => {
-          rs('Success send Mail!');
-        });
+        await this.mailservice
+          .sendForgotPassword(user, tokenToClient)
+          .then(() => {
+            rs('Success send Mail!');
+          });
       } catch (error) {
         rj(error);
       }
@@ -125,5 +131,50 @@ export class AuthService {
       return user;
     }
     return null;
+  }
+
+  async googleLogin(req: Request) {
+    return new Promise(async (rs, rj) => {
+      try {
+        const userClient: any = req.user;
+        const { google_id, email, full_name } = userClient;
+        const checkData = await this.userRepository.findOne({
+          where: { email },
+        });
+        const data: AuthGoogleLoginDto = {
+          google_id,
+          email,
+          full_name,
+          role: UserRole.USER,
+          status: UserStatus.ACTIVE,
+        };
+        if (!checkData) {
+          const resultSave = await this.userRepository.save(data);
+          const tokenToClient = await this.jwtService.sign({
+            id: resultSave.id.toString(),
+            email: resultSave.email,
+            full_name: resultSave.full_name,
+            role: resultSave.role,
+            status: resultSave.status,
+          });
+          await this.userRepository.update(resultSave.id.toString(), {
+            token: tokenToClient,
+          });
+          rs(tokenToClient);
+        } else {
+          await this.userRepository.update(checkData.id, { ...data });
+          const tokenToClient = await this.jwtService.sign({
+            id: checkData.id.toString(),
+            email: data.email,
+            full_name: data.full_name,
+            role: data.role,
+            status: data.status,
+          });
+          rs(tokenToClient);
+        }
+      } catch (error) {
+        rj(error);
+      }
+    });
   }
 }

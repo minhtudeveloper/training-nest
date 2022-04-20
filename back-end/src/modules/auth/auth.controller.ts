@@ -18,6 +18,7 @@ import {
   AuthLoginDto,
   AuthResetPasswordDto,
 } from './entity/auth.entity';
+import GoogleAuthGuard from './guards/google.guard';
 import JwtAccessAuthGuard from './guards/jwt-access-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
@@ -52,11 +53,26 @@ export class AuthController {
   @Post('/forgot-password')
   async forgotPassword(
     @Body() input: AuthForgotPasswordDto,
-    @Req() req: Request,
     @Res() res: Response,
   ) {
     this.authService
       .forgotPassword(input)
+      .then(requestSuccess(res))
+      .catch(requestError(res));
+  }
+
+  @Get('auth/google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth(@Req() req) {
+    
+  }
+
+
+  @Get('auth/google/callback')
+  @UseGuards(GoogleAuthGuard)
+  googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    this.authService
+      .googleLogin(req)
       .then(requestSuccess(res))
       .catch(requestError(res));
   }

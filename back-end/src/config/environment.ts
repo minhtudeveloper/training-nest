@@ -1,5 +1,6 @@
 export const Environment = () => {
   return {
+    PORT: String(process.env.PORT),
     MONGODB_URI: String(
       process.env.NODE_ENV === 'development'
         ? process.env.MONGODB_URI_DEV

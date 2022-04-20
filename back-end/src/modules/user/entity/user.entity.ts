@@ -7,14 +7,8 @@ import {
   IsNotEmpty,
   MinLength,
   IsEnum,
-  validateOrReject,
-  isNotEmpty,
-  IsObject,
-  minLength,
 } from 'class-validator';
 import {
-  BeforeInsert,
-  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -27,6 +21,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('users')
+// table - Users
 export class User {
   @ObjectIdColumn()
   id: ObjectID;
@@ -132,7 +127,6 @@ export class UserChangePasswordInput extends UserChangePasswordDto {
     super();
     this.password_new = password_new;
     this.password_old = password_old;
-
   }
 }
 
